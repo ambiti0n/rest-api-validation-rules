@@ -8,15 +8,20 @@ const app = express();
 
 
 // app.use(bodyParser.urlencoded({extended: true}));
-function rawBodySaver (req, res, buf, encoding) {
-    if (buf && buf.length) {
-      req.rawBody = buf.toString(encoding || 'utf8');
+app.use(require('body-parser').json()); 
+app.use(require('body-parser').urlencoded({ extended: true }));
+
+app.use((err, req, res, next,) => {
+    // This check makes sure this is a JSON parsing issue, but it might be
+    // coming from any middleware, not just body-parser:
+
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).send(returnMethod("Invalid JSON payload passed", "error",null)); // Bad request
     }
-}
-app.use(bodyParser.json({ verify: rawBodySaver }));
-app.use(bodyParser.urlencoded({ verify: rawBodySaver, extended: true }));
-app.use(bodyParser.raw({ verify: rawBodySaver, type: '*/*' }));
-// app.use(express.json());
+
+    next();
+});
+
 
 
 app.get('/', (req, res) => {
