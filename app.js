@@ -1,5 +1,5 @@
 const express = require('express');
-const bodyparser = require("body-parser");
+const bodyParser = require("body-parser");
 const custom_validation_middleware = require("./custom_validator")
 
 
@@ -7,8 +7,16 @@ const custom_validation_middleware = require("./custom_validator")
 const app = express();
 
 
-app.use(bodyparser.urlencoded({extended: true}));
-app.use(express.json());
+// app.use(bodyParser.urlencoded({extended: true}));
+function rawBodySaver (req, res, buf, encoding) {
+    if (buf && buf.length) {
+      req.rawBody = buf.toString(encoding || 'utf8');
+    }
+}
+app.use(bodyParser.json({ verify: rawBodySaver }));
+app.use(bodyParser.urlencoded({ verify: rawBodySaver, extended: true }));
+app.use(bodyParser.raw({ verify: rawBodySaver, type: '*/*' }));
+// app.use(express.json());
 
 
 app.get('/', (req, res) => {
@@ -42,6 +50,7 @@ app.post('/validate-rule',  custom_validation_middleware.validate, (req, res)=>{
     return res.status(400).send(to_checkConditionAgainstData);
     else return res.status(200).send(to_checkConditionAgainstData);
 });
+
 
 function checkRuleAgainstDataField(rule, data) {
     if(!data[rule.field]){
