@@ -1,19 +1,4 @@
 
-
-
-function checkBodyType(body) {
-    if(typeof body === 'object') return returnMethod("", "success", body);
-    if(typeof body === 'string'){
-        try{
-            let newBody = JSON.parse(body);
-            return returnMethod("", "success", newBody);
-        }catch(e){
-            return returnMethod("Invalid JSON payload passed.", "error", null);
-        }
-    }
-    return returnMethod("body should be an object.", "error", null); 
-}
-
 function checkRequiredFields(body) {
     let {rule , data } = body;
     if(!data && !rule){
@@ -68,12 +53,7 @@ function returnMethod(message, status, data) {
 module.exports = {
     validate:  (req, res, next) => {
         let body = req.body;
-        
-        // check if BODY is valid json or stringified json
-        let to_checkBodyType = checkBodyType(body);
-        if(to_checkBodyType.status === "error")
-        return res.status(400).send(to_checkBodyType);
-        body = to_checkBodyType.data;
+
         
         // check required fields in BODY
         let to_checkRequiredFields = checkRequiredFields(body);
